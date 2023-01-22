@@ -3,9 +3,10 @@ const bodyParser = require('body-parser');
 const ejs = require('ejs');
 const mongoose = require('mongoose');
 var _ = require('lodash');
+require('dotenv').config()
 
 // database connection
-mongoose.connect("mongodb+srv://ibrahim:ibrahim123@cluster0.n66dv.mongodb.net/todoDB");
+mongoose.connect(process.env.mongoUrl);
 // todo list schema
 const itemsSchema = new mongoose.Schema({
     name: String
