@@ -5,16 +5,18 @@ const mongoose = require('mongoose');
 var _ = require('lodash');
 require('dotenv').config()
 
+
+const date = new Date();
+
+const today = `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}`
+
+
 // database connection
-mongoose.connect(process.env.mongoUrl);
+mongoose.connect("mongodb://localhost:27017/todoDB");
 // todo list schema
 const itemsSchema = new mongoose.Schema({
     name: String
 })
-const workItemsSchema = new mongoose.Schema({
-    name: String
-})
-
 // collections creation
 const Item = mongoose.model("item", itemsSchema)
 
@@ -24,11 +26,6 @@ const item3 = new Item({name: "<== Hit this to delete an item"})
 
 const defaultItems = [item1, item2, item3]
 
-const listSchema = new mongoose.Schema({
-    name: String,
-    items: [itemsSchema]
-})
-const List = mongoose.model("list", listSchema)
 
 var app = express();
 app.set('view engine', 'ejs');
@@ -54,7 +51,7 @@ app.get("/", function (req, res) {
                 res.redirect('/')
             } else {
                 res.render('index', {
-                    listTitle: "Today",
+                    listTitle: today,
                     items: items,
                 })
             }
@@ -66,87 +63,27 @@ app.get("/", function (req, res) {
 
 app.post('/', function (req, res) {
 
-    const listName = req.body.list
     const item = req.body.newItem;
     const newItem = new Item({name: item});
-    if (listName === "Today") {
-        newItem.save();
-        res.redirect('/');
-    } else {
-        
-        List.findOne({name: listName}, function(err, list) {
-            if (err) {
-                console.log(err)
-            } else {
-                list.items.push(newItem)
-                list.save();
-            }
-        })
-        res.redirect("/" + listName)
-    }
-
-
     
-    
+    newItem.save();
+    console.log("Successfully added new item to items collection🌚");
+
+    res.redirect('/')
+
 });
 
-
-app.get('/:list', function (req, res) {
-
-    const listName = _.capitalize(req.params.list);
-    if (listName === 'Favicon.ico') {
-
-        res.redirect('/')
+app.post("/delete", function (req, res) {
+    const itemId = req.body.id
         
-    } else {
-
-        List.findOne({name: listName}, function (err, list) {
-            if (!err) {
-                if (!list) {
-                    const list = new List({
-                        name: listName,
-                        items: defaultItems
-                    })
-                    list.save()
-                    res.redirect("/" + listName)
-
-                } else {
-                    res.render('index', {
-                        listTitle: list.name,
-                        items: list.items
-                    })
-                }
-            }
-        })
-    }
-
-    
-    
-});
-
-
-app.post("/delete/:listName", function (req, res) {
-    const itemId = req.body.checkbox
-    const listName = req.params.listName
-    if (listName === "Today") {
-        
-        Item.deleteOne({_id: itemId}, function(err) {
-            if (err) {
-                console.log(err)
-            } else {
-                console.log("successfully deleted checked item from DB.")
-            }   
-        })
-        res.redirect('/')
-    } else {
-
-        List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: itemId}}}, function (err, result) {
-            if(!err) {
-                console.log("successfully deleted checked item from DB.")
-            }
-        })
-        res.redirect("/" + listName)
-    }
+    Item.deleteOne({_id: itemId}, function(err) {
+        if (err) {
+            console.log(err)
+        } else {
+            console.log("successfully deleted checked item from DB.")
+        }   
+    })
+    res.redirect('/')
 })
 
 
@@ -155,6 +92,6 @@ if(port == null || port == "") {
     port = 3000;
 }
 
-app.listen(port, function () {
+app.listen(3000, function () {
     console.log("Server has started successfully.");
 });
