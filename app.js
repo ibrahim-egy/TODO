@@ -12,7 +12,7 @@ const today = `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}`
 
 
 // database connection
-mongoose.connect("mongodb://localhost:27017/todoDB");
+mongoose.connect(process.env.mongoUrl);
 // todo list schema
 const itemsSchema = new mongoose.Schema({
     name: String
